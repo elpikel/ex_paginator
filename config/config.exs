@@ -7,3 +7,5 @@ config :ex_paginator, ExPaginator.Repo,
   hostname: "localhost"
 
 config :ex_paginator, ecto_repos: [ExPaginator.Repo]
+
+import_config "#{Mix.env()}.exs"
