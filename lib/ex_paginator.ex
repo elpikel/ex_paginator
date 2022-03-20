@@ -9,10 +9,11 @@ defmodule ExPaginator do
     limit = opts[:limit]
     previous_cursor = Meta.decode(opts[:cursor])
     cursor_function = opts[:cursor_function]
+    direction = opts[:direction] || :forward
 
     entries =
       query
-      |> set_cursor(previous_cursor)
+      |> set_cursor(previous_cursor, direction)
       |> limit(^limit)
       |> Repo.all()
 
@@ -47,31 +48,47 @@ defmodule ExPaginator do
     Enum.at(entries, Enum.count(entries) - 1)
   end
 
-  defp set_cursor(query, nil), do: query
+  defp set_cursor(query, nil, _direction), do: query
 
-  defp set_cursor(query, cursor) do
+  defp set_cursor(query, cursor, direction) do
     cursor
     |> Map.keys()
     |> Enum.reduce(query, fn column, query ->
       %{table: table, value: value, order: order} = Map.get(cursor, column)
 
-      order(query, order, table, column, value)
+      order(query, order, table, column, value, direction)
     end)
   end
 
-  defp order(query, :desc, nil, column, value) do
+  defp order(query, :desc, nil, column, value, :forward) do
     where(query, ^dynamic([q], field(q, ^column) < ^value))
   end
 
-  defp order(query, :desc, table, column, value) do
+  defp order(query, :desc, nil, column, value, :backward) do
+    where(query, ^dynamic([q], field(q, ^column) >= ^value))
+  end
+
+  defp order(query, :desc, table, column, value, :forward) do
     where(query, ^dynamic([{^table, q}], field(q, ^column) < ^value))
   end
 
-  defp order(query, :asc, nil, column, value) do
+  defp order(query, :desc, table, column, value, :backward) do
+    where(query, ^dynamic([{^table, q}], field(q, ^column) >= ^value))
+  end
+
+  defp order(query, :asc, nil, column, value, :forward) do
     where(query, ^dynamic([q], field(q, ^column) > ^value))
   end
 
-  defp order(query, :asc, table, column, value) do
+  defp order(query, :asc, nil, column, value, :backward) do
+    where(query, ^dynamic([q], field(q, ^column) <= ^value))
+  end
+
+  defp order(query, :asc, table, column, value, :forward) do
     where(query, ^dynamic([{^table, q}], field(q, ^column) > ^value))
+  end
+
+  defp order(query, :asc, table, column, value, :backward) do
+    where(query, ^dynamic([{^table, q}], field(q, ^column) <= ^value))
   end
 end

@@ -3,6 +3,44 @@ defmodule ExPaginatorTest do
 
   alias ExPaginator.Models
 
+  test "paginate backward and forward" do
+    for i <- 1..5 do
+      Repo.insert!(%Models.User{name: "user_#{i}"})
+    end
+
+    query =
+      Models.User
+      |> order_by([u], asc: u.name)
+      |> select([u], u)
+
+    meta = ExPaginator.paginate(query, fields: [{:name, :asc}], limit: 2, direction: :forward)
+
+    assert meta.total == 5
+    assert [%{name: "user_1"}, %{name: "user_2"}] = meta.entries
+
+    meta =
+      ExPaginator.paginate(query,
+        fields: [{:name, :asc}],
+        limit: 2,
+        cursor: meta.cursor,
+        direction: :backward
+      )
+
+    assert meta.total == 5
+    assert [%{name: "user_1"}, %{name: "user_2"}] = meta.entries
+
+    meta =
+      ExPaginator.paginate(query,
+        fields: [{:name, :asc}],
+        limit: 2,
+        cursor: meta.cursor,
+        direction: :forward
+      )
+
+    assert meta.total == 5
+    assert [%{name: "user_3"}, %{name: "user_4"}] = meta.entries
+  end
+
   test "paginate on association" do
     for i <- 1..5 do
       Repo.insert(%Models.Post{
