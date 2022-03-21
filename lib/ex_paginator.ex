@@ -60,35 +60,43 @@ defmodule ExPaginator do
     end)
   end
 
-  defp order(query, :desc, nil, column, value, :forward) do
-    where(query, ^dynamic([q], field(q, ^column) < ^value))
-  end
-
-  defp order(query, :desc, nil, column, value, :backward) do
-    where(query, ^dynamic([q], field(q, ^column) >= ^value))
-  end
-
   defp order(query, :desc, table, column, value, :forward) do
-    where(query, ^dynamic([{^table, q}], field(q, ^column) < ^value))
+    case table do
+      nil ->
+        where(query, ^dynamic([q], field(q, ^column) < ^value))
+
+      table ->
+        where(query, ^dynamic([{^table, q}], field(q, ^column) < ^value))
+    end
   end
 
   defp order(query, :desc, table, column, value, :backward) do
-    where(query, ^dynamic([{^table, q}], field(q, ^column) >= ^value))
-  end
+    case table do
+      nil ->
+        where(query, ^dynamic([q], field(q, ^column) >= ^value))
 
-  defp order(query, :asc, nil, column, value, :forward) do
-    where(query, ^dynamic([q], field(q, ^column) > ^value))
-  end
-
-  defp order(query, :asc, nil, column, value, :backward) do
-    where(query, ^dynamic([q], field(q, ^column) <= ^value))
+      table ->
+        where(query, ^dynamic([{^table, q}], field(q, ^column) >= ^value))
+    end
   end
 
   defp order(query, :asc, table, column, value, :forward) do
-    where(query, ^dynamic([{^table, q}], field(q, ^column) > ^value))
+    case table do
+      nil ->
+        where(query, ^dynamic([q], field(q, ^column) > ^value))
+
+      table ->
+        where(query, ^dynamic([{^table, q}], field(q, ^column) > ^value))
+    end
   end
 
   defp order(query, :asc, table, column, value, :backward) do
-    where(query, ^dynamic([{^table, q}], field(q, ^column) <= ^value))
+    case table do
+      nil ->
+        where(query, ^dynamic([q], field(q, ^column) <= ^value))
+
+      table ->
+        where(query, ^dynamic([{^table, q}], field(q, ^column) >= ^value))
+    end
   end
 end
