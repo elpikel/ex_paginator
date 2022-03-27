@@ -2,6 +2,7 @@ defmodule ExPaginatorTest do
   use ExPaginator.RepoCase
 
   alias ExPaginator.Models
+  alias ExPaginator.Options
 
   test "paginate backward and forward" do
     for i <- 1..5 do
@@ -13,32 +14,34 @@ defmodule ExPaginatorTest do
       |> order_by([u], asc: u.name)
       |> select([u], u)
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :asc}], limit: 2, direction: :forward)
+    paginator =
+      ExPaginator.paginate(query, %Options{fields: [{:name, :asc}], limit: 2, direction: :forward})
 
-    assert meta.total == 5
-    assert [%{name: "user_1"}, %{name: "user_2"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_1"}, %{name: "user_2"}] = paginator.entries
 
-    meta =
-      ExPaginator.paginate(query,
-        fields: [{:name, :asc}],
-        limit: 2,
-        cursor: meta.cursor,
-        direction: :backward
+    paginator =
+      ExPaginator.paginate(
+        query,
+        %Options{
+          fields: [{:name, :asc}],
+          limit: 2,
+          cursor: paginator.cursor,
+          direction: :backward
+        }
       )
 
-    assert meta.total == 5
-    assert [%{name: "user_1"}, %{name: "user_2"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_1"}, %{name: "user_2"}] = paginator.entries
 
-    meta =
-      ExPaginator.paginate(query,
-        fields: [{:name, :asc}],
-        limit: 2,
-        cursor: meta.cursor,
-        direction: :forward
+    paginator =
+      ExPaginator.paginate(
+        query,
+        %Options{fields: [{:name, :asc}], limit: 2, cursor: paginator.cursor, direction: :forward}
       )
 
-    assert meta.total == 5
-    assert [%{name: "user_3"}, %{name: "user_4"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_3"}, %{name: "user_4"}] = paginator.entries
   end
 
   test "paginate on association" do
@@ -57,37 +60,46 @@ defmodule ExPaginatorTest do
       |> order_by([user: u], asc: u.name)
       |> select([u], u)
 
-    meta =
-      ExPaginator.paginate(query,
-        fields: [{{:user, :name}, :asc}],
-        limit: 2,
-        cursor_function: fn post -> post.user.name end
+    paginator =
+      ExPaginator.paginate(
+        query,
+        %Options{
+          fields: [{{:user, :name}, :asc}],
+          limit: 2,
+          cursor_function: fn post -> post.user.name end
+        }
       )
 
-    assert meta.total == 5
-    assert [%{user: %{name: "user_1"}}, %{user: %{name: "user_2"}}] = meta.entries
+    assert paginator.total == 5
+    assert [%{user: %{name: "user_1"}}, %{user: %{name: "user_2"}}] = paginator.entries
 
-    meta =
-      ExPaginator.paginate(query,
-        fields: [{{:user, :name}, :asc}],
-        limit: 2,
-        cursor: meta.cursor,
-        cursor_function: fn post -> post.user.name end
+    paginator =
+      ExPaginator.paginate(
+        query,
+        %Options{
+          fields: [{{:user, :name}, :asc}],
+          limit: 2,
+          cursor: paginator.cursor,
+          cursor_function: fn post -> post.user.name end
+        }
       )
 
-    assert meta.total == 5
-    assert [%{user: %{name: "user_3"}}, %{user: %{name: "user_4"}}] = meta.entries
+    assert paginator.total == 5
+    assert [%{user: %{name: "user_3"}}, %{user: %{name: "user_4"}}] = paginator.entries
 
-    meta =
-      ExPaginator.paginate(query,
-        fields: [{{:user, :name}, :asc}],
-        limit: 2,
-        cursor: meta.cursor,
-        cursor_function: fn post -> post.user.name end
+    paginator =
+      ExPaginator.paginate(
+        query,
+        %Options{
+          fields: [{{:user, :name}, :asc}],
+          limit: 2,
+          cursor: paginator.cursor,
+          cursor_function: fn post -> post.user.name end
+        }
       )
 
-    assert meta.total == 5
-    assert [%{user: %{name: "user_5"}}] = meta.entries
+    assert paginator.total == 5
+    assert [%{user: %{name: "user_5"}}] = paginator.entries
   end
 
   test "paginate on asc" do
@@ -100,20 +112,30 @@ defmodule ExPaginatorTest do
       |> order_by([u], asc: u.name)
       |> select([u], u)
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :asc}], limit: 2)
+    paginator = ExPaginator.paginate(query, %Options{fields: [{:name, :asc}], limit: 2})
 
-    assert meta.total == 5
-    assert [%{name: "user_1"}, %{name: "user_2"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_1"}, %{name: "user_2"}] = paginator.entries
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :asc}], limit: 2, cursor: meta.cursor)
+    paginator =
+      ExPaginator.paginate(query, %Options{
+        fields: [{:name, :asc}],
+        limit: 2,
+        cursor: paginator.cursor
+      })
 
-    assert meta.total == 5
-    assert [%{name: "user_3"}, %{name: "user_4"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_3"}, %{name: "user_4"}] = paginator.entries
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :asc}], limit: 2, cursor: meta.cursor)
+    paginator =
+      ExPaginator.paginate(query, %Options{
+        fields: [{:name, :asc}],
+        limit: 2,
+        cursor: paginator.cursor
+      })
 
-    assert meta.total == 5
-    assert [%{name: "user_5"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_5"}] = paginator.entries
   end
 
   test "paginate on desc" do
@@ -126,19 +148,29 @@ defmodule ExPaginatorTest do
       |> order_by([u], desc: u.name)
       |> select([u], u)
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :desc}], limit: 2)
+    paginator = ExPaginator.paginate(query, %Options{fields: [{:name, :desc}], limit: 2})
 
-    assert meta.total == 5
-    assert [%{name: "user_5"}, %{name: "user_4"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_5"}, %{name: "user_4"}] = paginator.entries
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :desc}], limit: 2, cursor: meta.cursor)
+    paginator =
+      ExPaginator.paginate(query, %Options{
+        fields: [{:name, :desc}],
+        limit: 2,
+        cursor: paginator.cursor
+      })
 
-    assert meta.total == 5
-    assert [%{name: "user_3"}, %{name: "user_2"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_3"}, %{name: "user_2"}] = paginator.entries
 
-    meta = ExPaginator.paginate(query, fields: [{:name, :desc}], limit: 2, cursor: meta.cursor)
+    paginator =
+      ExPaginator.paginate(query, %Options{
+        fields: [{:name, :desc}],
+        limit: 2,
+        cursor: paginator.cursor
+      })
 
-    assert meta.total == 5
-    assert [%{name: "user_1"}] = meta.entries
+    assert paginator.total == 5
+    assert [%{name: "user_1"}] = paginator.entries
   end
 end

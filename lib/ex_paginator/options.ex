@@ -1,5 +1,5 @@
-defmodule ExPaginator.Meta do
-  defstruct entries: [], total: 0, cursor: ""
+defmodule ExPaginator.Options do
+  defstruct fields: [], limit: 0, cursor: nil, cursor_function: nil, direction: :forward
 
   def decode(nil), do: nil
 
