@@ -71,6 +71,10 @@ defmodule ExPaginatorTest do
       )
 
     assert paginator.total == 5
+
+    assert paginator.cursor ==
+             Options.encode(%{name: %{table: :user, value: "user_2", order: :asc}})
+
     assert [%{user: %{name: "user_1"}}, %{user: %{name: "user_2"}}] = paginator.entries
 
     paginator =
@@ -85,6 +89,10 @@ defmodule ExPaginatorTest do
       )
 
     assert paginator.total == 5
+
+    assert paginator.cursor ==
+             Options.encode(%{name: %{table: :user, value: "user_4", order: :asc}})
+
     assert [%{user: %{name: "user_3"}}, %{user: %{name: "user_4"}}] = paginator.entries
 
     paginator =
